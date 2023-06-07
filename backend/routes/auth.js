@@ -11,14 +11,15 @@ const JWT_SECRET = "Arham@2$0$0$3";
 router.post(
   "/createuser",
   [
-    body("name", "must have atleast 2 characters").isLength({ min: 2 }),
+    body("name", "must have atleast 2 characters").isLength({ min: 1 }),
     body("email", "must be a vaild email").isEmail(),
     body("password", "must have atleast 5 characters").isLength({ min: 5 }),
   ],
   async (req, res) => {
+    let success=false;
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ success,errors: errors.array() });
     }
     //check whether user with same email already exists
     try {
@@ -26,7 +27,7 @@ router.post(
       if (user) {
         return res
           .status(400)
-          .json({ error: "sorry, user with this email already exists" });
+          .json({ success,error: "sorry, user with this email already exists" });
       }
       const salt = await bcrypt.genSalt(10);
       const secPass = await bcrypt.hash(req.body.password, salt);
@@ -42,7 +43,8 @@ router.post(
         },
       };
       const authToken = jwt.sign(data, JWT_SECRET);
-      res.json({ authToken }); // or res.json(user)
+      success=true
+      res.json({success, authToken }); // or res.json(user)
     } catch (error) {
       console.log(error.message);
       res.status(500).send("some error occured");
@@ -85,6 +87,7 @@ router.post(
     body("password", "must have atleast 5 characters").isLength({ min: 5 }),
   ],
   async (req, res) => {
+    let success=false
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
@@ -95,13 +98,13 @@ router.post(
       if (!user) {
         return res
           .status(400)
-          .json({ error: "wrong email or password entered" });
+          .json({success, error: "wrong email or password entered" });
       }
       const passwordCompare = await bcrypt.compare(password, user.password);
       if (!passwordCompare) {
         return res
           .status(400)
-          .json({ error: "wrong email or password entered" });
+          .json({success, error: "wrong email or password entered" });
       }
       const data = {
         user: {
@@ -109,7 +112,8 @@ router.post(
         },
       };
       const authToken = jwt.sign(data, JWT_SECRET);
-      res.json({ authToken });
+      success=true
+      res.json({success, authToken });
     } catch (error) {
       console.log(error.message);
       res.status(500).send("Internal server error occured");

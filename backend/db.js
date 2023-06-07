@@ -13,16 +13,6 @@ const connectToMongo=()=>{
         console.log('error while connecting to db')
     })
 }
-
-
-
-
-
-
-
-
-
-
 //------OR----------------
 //using async await
 /*
